@@ -1,158 +1,129 @@
-// TODO
-// [SIG] POKEMON
-// [SIG] POKEMON TYPE
-// [SIG] POKEMON MOVE 
-// [PRED] WELLFORMED POKEMON
-// [PRED] WELLFORMED POKEMON TYPE
-// [PRED] WELLFORMED POKEMON MOVE
-// [PRED] ATTACK/MOVE
-// [PRED] POKEMON FAINT
-// [ASSERT] GAME ENDS
-
-//[IDEA] We could have the same tournament structure. Idk if you've played pokemon games but it'll be similar to elite 4 ig.
 #lang forge/froglet
 
-//Abstract for all types
 abstract sig Type {}
-one sig Fire, Water, Grass extends Type {}
+one sig FIRE, WATER, GRASS extends Type {}
 
 sig Pokemon {
-    // [FILL]
-    // name: one String,
-    // type: one PokemonType,
-    // hp: one Int,
-    // moves: set PokemonMove
-    type: one PokemonType,
-    moves: set PokemonMove,
-    hp: one Int
+    poketype: one PokemonType,
+    moves: pfunc Int -> PokemonMove,
+    hp: pfunc TURN -> Int
 }
 sig PokemonType {
-    // [FILL]
-    // name: one String,
-    // weaknesses: set PokemonType,
-    // resistances: set PokemonType
-    name: one String,
-    weaknesses: set PokemonType,
-    resistances: set PokemonType
-
-
+    type: one Type,
+    weakness: one Type,
+    resistances: one Type
 }
 sig PokemonMove {
-    // [FILL]
-    // name: one String,
-    // type: one PokemonType,
-    // power: one Int
     moveType: one PokemonType,
     power: one Int
 }
-pred wellformed[p: Pokemon] {
-    // [FILL]
-    // all pokemon have 100 hp initially
-    // all pokemon have at 2 moves
-    // all pokemon have a type
-    // weakness and resistances are dependent on the type
 
 
-    all move: PokemonMove | {
+sig TURN {
+}
 
-        //have the power between 10 and 20
-        move.power >=10 and move.power <= 20
+one sig BATTLE {
+    firstTurn: one TURN,
+    next: pfunc TURN -> TURN,
+    attacker : pfunc TURN -> Pokemon
+}
+
+pred wellformedpokemon[p: Pokemon] {
+    all t: TURN | {
+        p.hp[t] >= 0
     }
-
-    p.hp >= 0 and p.hp <=100
-    #{p.moves} = 2
-
-    //2 moves and hp is between 0 and 100.
-
-
+    all i: Int | {
+        (i<0 or i>=2) implies {
+            no p.moves[i]
+        }
+        (i = 0 or i = 1) implies {
+            some p.moves[i]
+        }
+    }
 }
 
 pred wellformedPokemonType {
-    // [FILL]
-    // We can also hard code the values since we only have 3 types
-    // all types have a name
-    // all types have a set of weaknesses
-    // all types have a set of resistances
-    // weaknesses and resistances are disjoint
-    #{t: PokemonType | t.name = "Fire"} = 1
-    #{t: PokemonType | t.name = "Water"} = 1
-    #{t: PokemonType | t.name = "Grass"} = 1
-    //hard coding the 3 types
-
-    all t: PokemonType | {
-        t.name = "Fire" implies {
-            t.weakness = {w: PokemonType | w.name = "Water"}
-            t.resistances = {r: PokemonType | r.name = "Grass"}
+    all t: PokemonType |
+    {
+        t.type = FIRE or t.type = WATER or t.type = GRASS
+        t.type = FIRE implies {
+            t.weakness = WATER
+            t.resistances = GRASS
         }
-        t.name = "Water" implies {
-            t.weakness = {w: PokemonType | w.name = "Grass"}
-            t.resistances = {r: PokemonType | r.name = "Fire"}
+        t.type = WATER implies {
+            t.weakness = GRASS
+            t.resistances = FIRE
         }
-        t.name = "Grass" implies {
-            t.weaknesses = {w: PokemonType | w.name = "Fire"}
-            t.resistances = {r: PokemonType | r.name = "water"}
+        t.type = GRASS implies {
+            t.weakness = FIRE
+            t.resistances = WATER
         }
     }
-
 }
+
 
 pred wellformedPokemonMove {
-    // [FILL]
-    // all moves have a name
-    // all moves have a type
-    // all moves have a power
-    m.power >= 10 and m.power <= 20
-    one m.moveType
-    // not sure what to do about the naming, is that necessary?
+    all m: PokemonMove |
+    {m.power >= 1 and m.power <= 3
+    one m.moveType}
 }
 
-// I will refer to a state transtiion as an attack since we have pokemon move here. Dont want to confuse the two
-
-// Also have to decide which pokemon goes first, we could have a simple speed attribute[INT] to decide this
-pred attack [t: Pokemon, p: PokemonMove] {
+pred init[t: TURN] {
     // [FILL]
-    // damage = power of the move, to keep the game short lets have this in the range of 10-20. With doubling and halving of damage, there should be 5-10 moves to faint a pokemon
-    // if the move type is weak against the pokemon type, the damage is doubled
-    // if the move type is resistant against the pokemon type, the damage is halved
-    // if the move type is the same as the pokemon type, the damage is normal
-    // damage calculated should be subtracted from the hp of the pokemon
-    move in attacker.moves // attacker goes first
-
-    let baseDamage = move.power | {
-        (move.moveType in defender.type.weaknesses) implies {
-            defender.hp' = defender.hp - (baseDamage*2) // weakness so double damage
-
-        } else {
-            (move.moveType in defender.type.resistance) implies {
-                defender.hp' = defender.hp - (baseDamage / 2) // half damage resistance
-            } else {
-                defender.hp' = defender.hp - baseDamage // normal
-            }
-        }
-    }
-    defender.hp' >= 0 // no hp below 0
-    defender.type' = defender.type
-    defender.moves' = defender.moves
-    attacker.hp' = attacker.hp
-    attacker.type' = attacker.type
-    attacker.moves' = attacker.moves
-}
-
-pred pokemonFaint {
-    // [FILL]
-    // if the hp of a pokemon is less than or equal to 0, the pokemon has fainted
-    p.hp <= 0 // do we need this function?
-}
-
-assert gameEnds {
-    // [FILL]
-    // if one pokemon have fainted, the game ends
+    // all pokemon are wellformed
+    // all pokemon types are wellformed
+    // all pokemon moves are wellformed
+    
     all p: Pokemon | {
-        pokemonFaint[p] implies {
-            no attacker, defender: Pokemon, move: PokemonMove | {
-                attack[attacker, defender. move]
-            }
-        }
+        p.hp[t] = 7
+        wellformedpokemon[p]}
+
+}
+
+pred attack[attacker: Pokemon, defender: Pokemon, move: PokemonMove, t1, t2: TURN] {
+    // [FILL]
+    // if the move type of the move is the weakness of the defender's type, the power of the move is doubled
+    // if the move type of the move is the resistance of the defender's type, the power of the move is halved
+    move.moveType = defender.poketype.weakness implies {
+        defender.hp[t2] = subtract[defender.hp[t1], multiply[move.power, 2]]
+    }
+    move.moveType = defender.poketype.resistances implies {
+        defender.hp[t2] = subtract[defender.hp[t1], divide[move.power, 2]]
+    }
+    move.moveType != defender.poketype.weakness and move.moveType != defender.poketype.resistances implies {
+        defender.hp[t2] = subtract[defender.hp[t1], move.power]
+    }
+}
+
+pred step[t1: TURN, t2: TURN] {
+    // [FILL]
+    // the next state is the next turn
+    BATTLE.attacker[t2] != BATTLE.attacker[t1]
+    some p: Pokemon | {
+        p.hp[t2] = p.hp[t1]
+    }
+    some attacker, defender: Pokemon, move: PokemonMove | {
+        attack[attacker, defender, move, t1, t2]
+    }
+}
+
+pred traces{
+    wellformedPokemonType
+    wellformedPokemonMove
+    init[BATTLE.firstTurn]
+    no prev: TURN | BATTLE.next[prev] = BATTLE.firstTurn
+    all t: TURN | some BATTLE.next[t] implies {
+        step[t, BATTLE.next[t]]
     }
 
 }
+
+pred eventuallybattleends {
+    some t: TURN, p:Pokemon | {
+        p.hp[t] = 0
+    }
+}
+run {
+    traces
+    eventuallybattleends
+} for exactly 2 Pokemon, exactly 3 PokemonType, 1 BATTLE, 5 TURN for {next is linear}
