@@ -80,10 +80,13 @@ pred init[t: TURN] {
 
 }
 
-pred attack[attacker: Pokemon, defender: Pokemon, move: PokemonMove, t1, t2: TURN] {
+pred attack[att: Pokemon, defender: Pokemon, move: PokemonMove, t1, t2: TURN] {
     // [FILL]
     // if the move type of the move is the weakness of the defender's type, the power of the move is doubled
-    // if the move type of the move is the resistance of the defender's type, the power of the move is halved
+    // if the move type of the move is the resistance of the defender's type, the power of the move is halved\
+
+    // BATTLE.attacker[t1] = att
+    // att != defender
     move.moveType = defender.poketype.weakness implies {
         defender.hp[t2] = subtract[defender.hp[t1], multiply[move.power, 2]]
     }
@@ -99,11 +102,16 @@ pred step[t1: TURN, t2: TURN] {
     // [FILL]
     // the next state is the next turn
     BATTLE.attacker[t2] != BATTLE.attacker[t1]
+    some t2: TURN | {
+        BATTLE.next[t1] = t2
+        some BATTLE.attacker[t2]
+        some BATTLE.attacker[t1]
+    }
     some p: Pokemon | {
         p.hp[t2] = p.hp[t1]
     }
-    some attacker, defender: Pokemon, move: PokemonMove | {
-        attack[attacker, defender, move, t1, t2]
+    some att, defender: Pokemon, move: PokemonMove | {
+        attack[att, defender, move, t1, t2]
     }
 }
 
