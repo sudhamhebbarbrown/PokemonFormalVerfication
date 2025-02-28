@@ -3,7 +3,7 @@
 Pokémon with Basic Stats:
 
 Each Pokémon has a name, HP (health points), and 2 moves.
-Each move has a type (e.g., fire, water, grass) and a damage value.
+Each move has a type (fire, water, grass) and a damage value.
 Turn-Based Combat System:
 
 Two Pokémon take turns attacking each other.
@@ -16,8 +16,27 @@ If a move is super effective, it does double damage.
 If a move is not very effective, it does half damage.
 Basic Move Selection:
 
-Each Pokémon has a small set of moves (e.g., "Tackle," "Ember," "Water Gun").
-The model should allow choosing a move and calculating the resulting HP change.
-Victory Conditions:
+Each Pokémon has a 2 moves. A move is chosen in random. (The model chooses it automatically)
 
+Victory Conditions:
 The game ends when one Pokémon’s HP is reduced to 0.
+
+
+Results:
+
+Turn 1:
+![alt text](image-1.png)
+
+Turn 2:
+![alt text](image-2.png)
+
+Turn 3: 
+![alt text](image-3.png)
+
+Turn 4:
+![alt text](image-4.png)
+
+Turn 5:
+![alt text](image-5.png)
+
+
